@@ -1,1 +1,82 @@
-coming soon...
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
+
+<style>
+  body { margin: 0; overflow: hidden; background: #000; }
+  #B {
+    position: fixed; inset: auto 0 10px; margin: auto;
+    width: 70px; height: 70px; background: #fff; color: #000;
+    font: bold 22px monospace; text-decoration: none;
+    display: none; align-items: center; justify-content: center;
+    z-index: 10; transition: .2s;
+  }
+  #B:hover { background: #07f; color: #fff; }
+</style>
+
+<a id="B" href="https://emanuelemessina.github.io/qr/msce26">点</a>
+
+<canvas id="c"></canvas>
+
+<script>
+  x = c.getContext('2d'); f = 0;
+  W = c.width = innerWidth; H = c.height = innerHeight;
+  S = Math.max(2, Math.min(10, W/90|0));
+  w = W/S|0; h = H/S|0;
+  g = new Int8Array(w * h);
+
+  M = [
+    0x24acce88e2ea9245c000n, 0x55a222d8222ab56c4000n, 0x76a44ea8e2ead755c000n,
+    0x54a88288222a95444000n, 0x54a66e88eeee9545c000n, 0n, 0n, 0n,
+    0x3257774ac971ddd5d126191n, 0xad5115a2b1144955b5105bn, 0x2b53776aad70dc95d551095n,
+    0x2a55114aa91144945151111n, 0x3255774ac9715c9c51260d1n, 0n, 0n, 0n,
+    0x7777000000000n, 0x1454000000000n, 0x7757000000000n, 0x5151000000000n, 0x7777000000000n
+  ];
+
+  ox = (w-88)/2|0; oy = (h-M.length)/2|0;
+
+  for(k = w*h; k--;){
+    i = k%w; j = k/w|0;
+    X = i-ox; Y = j-oy;
+    g[k] = (X>=0 && M[Y] && (M[Y] & 1n<<BigInt(X))) ? -1 : 
+           (Math.random() < (i*2/w-1)**2 + (j*2/h-1)**2 - .8 ? 1 : 0);
+  }
+
+  A = (X, Y) => {
+    for(u = 25; u--;){ 
+      p = (X/S + (u%5)-2 |0) + (Y/S + (u/5|0)-2 |0)*w;
+      if(Math.random() > .5 && g[p] >= 0) g[p] = 1; 
+    }
+  };
+
+  c.onmousemove = e => e.buttons && A(e.clientX, e.clientY);
+  c.ontouchmove = e => A(e.touches[0].clientX, e.touches[0].clientY);
+  window.onresize = () => location.reload();
+
+  setInterval(() => {
+    x.fillStyle = 'rgba(0,0,0,.15)'; x.fillRect(0,0,W,H);
+    n = new Int8Array(g.length);
+    C = 0;
+
+    for(k = w*h; k--;){
+      i = k%w; j = k/w|0; b = 0; s = g[k];
+      
+      for(d = 9; d--;) 
+        if(d != 4) b += g[(i + d%3 - 1 + w)%w + ((j + (d/3|0) - 1 + h)%h)*w] > 0;
+
+      n[k] = s<0 ? (b>0 ? -2 : s) : (b==3 || (s>0 && b==2) ? (Math.random()<.001 ? 0 : (s>120?120:s+1)) : 0);
+          
+      if(n[k] == -1) C++;
+
+      if(n[k] && n[k] != -1){
+        x.fillStyle = n[k] == -2 ? '#fff' : `hsl(${180 + n[k]},100%,50%)`;
+        x.fillRect(i*S, j*S, S-1, S-1);
+      }
+    }
+    g = n;
+    f++;
+
+    if(f > 1 && !C && !window.Z) {
+      Z = 1; B.style.display = 'flex';
+      for(i = w*h; i--;) if(!g[i]) g[i] = 1; 
+    }
+  }, 40);
+</script>
