@@ -1,19 +1,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+
 <style>
   body { margin: 0; overflow: hidden; background: #000; }
   #B {
-    position: fixed; inset: auto 0 10px; margin: auto;
+    position: fixed; inset: auto 0; margin: auto;
     width: 70px; height: 70px; background: #fff; color: #000;
-    font: bold 22px monospace; text-decoration: none;
+    font-size: 22px; 
+    font-family: "DotGothic16", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    text-decoration: none;
     display: none; align-items: center; justify-content: center;
     z-index: 10; transition: .2s;
   }
   #B:hover { background: #07f; color: #fff; }
 </style>
 
-<a id="B" href="https://emanuelemessina.github.io/qr/msce26">点</a>
-
+<a id="B" href="https://emanuelemessina.github.io/polito/thesis">点</a>
 <canvas id="c"></canvas>
 
 <script>
@@ -22,6 +29,9 @@
   S = Math.max(2, Math.min(10, W/90|0));
   w = W/S|0; h = H/S|0;
   g = new Int8Array(w * h);
+
+  // Position the button 10 cells from the bottom
+  B.style.bottom = 10 * S + 'px';
 
   M = [
     0x24acce88e2ea9245c000n, 0x55a222d8222ab56c4000n, 0x76a44ea8e2ead755c000n,
@@ -32,11 +42,12 @@
   ];
 
   ox = (w-88)/2|0; oy = (h-M.length)/2|0;
+  T = 0;
 
   for(k = w*h; k--;){
     i = k%w; j = k/w|0;
     X = i-ox; Y = j-oy;
-    g[k] = (X>=0 && M[Y] && (M[Y] & 1n<<BigInt(X))) ? -1 : 
+    g[k] = (X>=0 && M[Y] && (M[Y] & 1n<<BigInt(X))) ? (T++, -1) : 
            (Math.random() < (i*2/w-1)**2 + (j*2/h-1)**2 - .8 ? 1 : 0);
   }
 
@@ -49,7 +60,6 @@
 
   c.onmousemove = e => e.buttons && A(e.clientX, e.clientY);
   c.ontouchmove = e => A(e.touches[0].clientX, e.touches[0].clientY);
-  window.onresize = () => location.reload();
 
   setInterval(() => {
     x.fillStyle = 'rgba(0,0,0,.15)'; x.fillRect(0,0,W,H);
@@ -73,6 +83,16 @@
     }
     g = n;
     f++;
+
+    if (!window.Z) {
+      x.strokeStyle = '#fff';
+      x.lineWidth = S; // Thickness matches cell size
+      x.setLineDash([280]); 
+      x.lineDashOffset = 280 * (C/T); 
+      // Adjusted Y coordinate to match the new 10*S distance
+      x.strokeRect(W/2 - 35, H - 10*S - 70, 70, 70);
+      x.setLineDash([]); 
+    }
 
     if(f > 1 && !C && !window.Z) {
       Z = 1; B.style.display = 'flex';
